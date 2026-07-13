@@ -1,1 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bamania's Exam Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<style>
+:root {
+  --theme-dark: #0f5298; 
+  --theme-light: #1665b5; 
+  --bg-gray: #f2f5f7;
+  --text-dark: #333;
+  --text-muted: #777;
+  --green: #7bb033;
+  --orange: #f28c04;
+  --teal: #33b89e;
+  --red: #d93025;
+  --shadow: 0 4px 15px rgba(0,0,0,0.1);
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+body { background: var(--bg-gray); color: var(--text-dark); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+
+/* ══ AUTH VIEW ══ */
+.auth-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--theme-dark); }
+.auth-box { background: white; padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 400px; }
+.auth-tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+.auth-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
+.auth-tab.active { color: var(--theme-dark); border-bottom: 2px solid var(--theme-dark); }
+.auth-form { display: none; }
+.auth-form.active { display: block; animation: fadeIn 0.3s; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); }
+.form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; outline: none; }
+.btn-primary { background: var(--theme-dark); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: 600; cursor: pointer; }
+.btn-primary:hover { background: var(--theme-light); }
+
+/* ══ MAIN LAYOUT ══ */
+.main-wrapper { display: none; height: 100vh; flex-direction: column; }
+.main-wrapper.active { display: flex; }
+
+.top-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 10; }
+.logo { font-size: 24px; font-weight: 700; color: var(--theme-dark); display: flex; align-items: center; gap: 10px; }
+.logo span { color: var(--orange); }
+.header-pills { display: flex; gap: 15px; }
+.header-pill { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px 20px; border-radius: 8px; color: white; font-size: 13px; font-weight: 600; text-align: center; cursor: default; }
+.header-pill i { margin-right: 5px; }
+.pill-green { background: linear-gradient(to bottom, #98c650, #73a726); }
+.pill-orange { background: linear-gradient(to bottom, #fcad35, #e47d00); }
+.pill-teal { background: linear-gradient(to bottom, #49ceb4, #26a589); cursor: pointer; }
+
+.sub-header { background: var(--theme-dark); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+.sub-header h2 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+.sub-header .breadcrumb { font-size: 13px; opacity: 0.9; }
+
+.content-area { display: flex; flex: 1; overflow: hidden; }
+
+/* Sidebar */
+.sidebar { width: 260px; background: var(--theme-dark); color: white; display: flex; flex-direction: column; overflow-y: auto; }
+.sidebar-header { padding: 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.nav-link { padding: 15px 20px; color: white; text-decoration: none; display: flex; align-items: center; gap: 15px; font-size: 14px; border-left: 4px solid transparent; cursor: pointer; transition: 0.2s; }
+.nav-link:hover, .nav-link.active { background: var(--theme-light); border-left-color: var(--orange); }
+
+.main-content { flex: 1; padding: 30px; overflow-y: auto; position: relative; }
+
+/* Views */
+.view { display: none; animation: fadeIn 0.4s; }
+.view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Profile Card */
+.profile-card-container { display: flex; justify-content: center; margin-bottom: 30px; }
+.profile-card { background: white; border-radius: 20px; padding: 40px; box-shadow: var(--shadow); text-align: center; width: 100%; max-width: 800px; position: relative; }
+.avatar-wrap { position: relative; width: 120px; height: 120px; margin: 0 auto 15px; }
+.avatar { width: 100%; height: 100%; border-radius: 20px; border: 2px solid #ddd; object-fit: cover; background: #eef; }
+.upload-icon { position: absolute; bottom: -10px; right: -10px; background: var(--theme-dark); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow); }
+.profile-name { font-size: 26px; color: var(--theme-dark); font-weight: 600; margin-bottom: 5px; }
+.profile-id { font-size: 16px; color: var(--red); font-weight: 600; margin-bottom: 30px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.stat-box { border-radius: 10px; padding: 20px; color: white; font-weight: 600; text-align: center; }
+.stat-box h3 { font-size: 32px; margin: 10px 0 5px; }
+.stat-box.green { background: linear-gradient(to bottom, #98c650, #73a726); box-shadow: 0 4px 10px rgba(123, 176, 51, 0.4); }
+.stat-box.teal { background: linear-gradient(to bottom, #49ceb4, #26a589); box-shadow: 0 4px 10px rgba(51, 184, 158, 0.4); }
+.stat-box.orange { background: linear-gradient(to bottom, #fcad35, #e47d00); box-shadow: 0 4px 10px rgba(242, 140, 4, 0.4); }
+
+.card { background: white; border-radius: var(--radius); padding: 25px; box-shadow: var(--shadow); margin-bottom: 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.chart-container { position: relative; height: 300px; width: 100%; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+th { background: #f8f9fa; color: var(--theme-dark); font-weight: 600; }
+tr:hover { background: #fcfcfc; }
+.badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; }
+.badge-pass { background: var(--green); } .badge-fail { background: var(--red); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; border: none; font-size: 14px; transition: 0.2s; color: white; text-decoration: none; }
+.btn-blue { background: var(--theme-dark); } .btn-blue:hover { background: var(--theme-light); }
+.btn-green { background: var(--green); } .btn-danger { background: var(--red); } .btn-outline { background: transparent; border: 1px solid #ccc; color: var(--text-dark); }
+
+/* Exam Taking UI */
+.exam-header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; }
+.timer { font-size: 24px; font-weight: bold; color: var(--red); display: flex; align-items: center; gap: 10px; }
+.exam-body { display: grid; grid-template-columns: 250px 1fr; gap: 20px; }
+.q-nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+.q-btn { width: 100%; aspect-ratio: 1; border: 1px solid #ccc; background: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
+.q-btn.current { border-color: var(--theme-dark); background: var(--theme-light); color: white; }
+.q-btn.answered { background: var(--green); color: white; border-color: var(--green); }
+.option-item { display: flex; align-items: center; gap: 15px; padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+.option-item:hover { background: #f8f9fa; }
+.option-item.selected { border-color: var(--theme-dark); background: #f0f7ff; }
+
+/* File/Video Previews */
+.file-preview { border: 1px solid #ddd; padding: 10px; border-radius: 8px; background: #fafafa; margin-bottom: 15px; text-align: center; }
+.file-preview img { max-width: 100%; max-height: 400px; object-fit: contain; }
+.file-preview embed { width: 100%; height: 500px; }
+.video-card { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; }
+.video-card iframe { width: 100%; height: 200px; border-radius: 6px; border: none; }
+
+/* Toast */
+#toast { position: fixed; top: 20px; right: 20px; background: var(--theme-dark); color: white; padding: 15px 25px; border-radius: 8px; box-shadow: var(--shadow); z-index: 9999; transform: translateX(150%); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 10px; font-weight: 600; }
+#toast.show { transform: translateX(0); }
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast"><i class="fas fa-info-circle"></i> <span id="toastMsg">Message</span></div>
+
+<!-- ══ AUTHENTICATION VIEW ══ -->
+<div id="view-auth" class="auth-wrapper">
+  <div class="auth-box">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h2 style="color: var(--theme-dark);"><i class="fas fa-graduation-cap"></i> JavaGoat Exams</h2>
+      <p style="color: var(--text-muted); font-size: 14px;">Log in or Register to continue</p>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="App.switchAuth('login')">Login</div>
+      <div class="auth-tab" onclick="App.switchAuth('register')">Register</div>
+    </div>
+    
+    <form id="form-login" class="auth-form active" onsubmit="App.login(event)">
+      <div class="form-group"><label>Email</label><input type="email" class="form-control" id="logEmail" required></div>
+      <div class="form-group"><label>Password</label><input type="password" class="form-control" id="logPass" required></div>
+      <button type="submit" class="btn-primary">Sign In</button>
+    </form>
+    
+    <form id="form-register" class="auth-form" onsubmit="App.register(event)">
+      <div class="form-group"><label>Full Name</label><input type="text" class="form-control" id="regName" required></div>
+      <div class="form-group"><label>Email</label><input type="email" class="form-control" id="regEmail" required></div>
+      <div class="form-group"><label>Department</label>
+        <select class="form-control" id="regDept"></select>
+      </div>
+      <div class="form-group"><label>Role</label>
+        <select class="form-control" id="regRole">
+          <option value="student">Student</option>
+          <option value="admin">Admin / Instructor</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Password</label><input type="password" class="form-control" id="regPass" required></div>
+      <button type="submit" class="btn-primary">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MAIN DASHBOARD LAYOUT ══ -->
+<div id="main-layout" class="main-wrapper">
+  <!-- Top Header -->
+  <div class="top-header">
+    <div class="logo"><i class="fas fa-graduation-cap" style="color:var(--theme-dark)"></i> bamania's <span>Portal</span></div>
+    <div class="header-pills">
+      <div class="header-pill pill-green" id="head-student-id">
+        <span><i class="far fa-id-badge"></i> Student ID</span>
+        <strong id="top-stid">---</strong>
+      </div>
+      <div class="header-pill pill-orange">
+        <span><i class="far fa-user"></i> Welcome To</span>
+        <strong id="top-name">---</strong>
+      </div>
+      <div class="header-pill pill-teal" onclick="App.logout()">
+        <span><i class="fas fa-sign-out-alt"></i> Account</span>
+        <strong>Logout</strong>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sub Header -->
+  <div class="sub-header">
+    <h2><i class="fas fa-th-large"></i> Dashboard</h2>
+    <div class="breadcrumb">Home > Dashboard</div>
+  </div>
+
+  <div class="content-area">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <!-- Injected via JS based on role -->
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content">
+      
+      <!-- ADMIN VIEW: Dashboard -->
+      <div id="view-admin-dash" class="view">
+        <div class="grid-2">
+          <div class="card">
+            <h3>Pass/Fail Ratio</h3>
+            <div class="chart-container"><canvas id="adminPieChart"></canvas></div>
+          </div>
+          <div class="card">
+            <h3>Average Scores Per Exam</h3>
+            <div class="chart-container"><canvas id="adminBarChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN VIEW: Manage Departments -->
+      <div id="view-admin-depts" class="view">
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+          <h2>Manage Departments</h2>
+          <form onsubmit="App.addDepartment(event)" style="display:flex; gap:10px; margin-top:20px; margin-bottom:20px;">
+            <input type="text" id="newDeptName" class="form-control" placeholder="New Department Name" required>
+            <button class="btn btn-blue" type="submit">Add</button>
+          </form>
+          <div id="adminDeptList"></div>
+        </div>
+      </div>
+
+      <!-- ADMIN VIEW: Exams List -->
+      <div id="view-admin-exams" class="view">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; margin-bottom:15px">
+            <h2>Manage Exams</h2>
+            <button class="btn btn-blue" onclick="App.navigate('admin-create')"><i class="fas fa-plus"></i> Create Exam</button>
+          </div>
+          <div id="adminExamList"></div>
+        </div>
+      </div>
+
+      <!-- ADMIN VIEW: Create/Edit Exam -->
+      <div id="view-admin-create" class="view">
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+          <h2 style="margin-bottom: 20px">Create New Exam</h2>
+          <form onsubmit="App.createExam(event)">
+            <div class="form-group"><label>Exam Title</label><input type="text" class="form-control" id="exTitle" required></div>
+            <div class="form-group"><label>Description</label><textarea class="form-control" id="exDesc" rows="3"></textarea></div>
+            <div class="grid-2">
+              <div class="form-group"><label>Department</label>
+                <select class="form-control" id="exDept"><option value="All">All Departments</option></select>
+              </div>
+              <div class="form-group"><label>Duration (Mins)</label><input type="number" class="form-control" id="exDuration" required value="30"></div>
+            </div>
+            <div class="form-group"><label>Passing Percentage (%)</label><input type="number" class="form-control" id="exPass" required value="40"></div>
+            <button type="submit" class="btn btn-blue w-100">Create Exam</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ADMIN VIEW: Exam Details (Add Questions) -->
+      <div id="view-admin-exam-detail" class="view">
+        <div class="card flex justify-between" id="adminExamHeader"></div>
+        <div class="grid-2" style="grid-template-columns: 1.2fr 0.8fr;">
+          <div class="card">
+            <h3>Added Questions</h3>
+            <div id="adminQuestionList" style="margin-top:15px"></div>
+          </div>
+          <div class="card">
+            <h3>Add New Question</h3>
+            <form onsubmit="App.addQuestion(event)" style="margin-top:15px">
+              <div class="form-group">
+                <label>Question Type</label>
+                <select class="form-control" id="qType" onchange="App.toggleQType()">
+                  <option value="mcq">Multiple Choice (MCQ)</option>
+                  <option value="file">Subjective (PDF/Image Upload)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Question Text / Instructions</label>
+                <textarea class="form-control" id="qText" rows="3" required></textarea>
+              </div>
+              
+              <div class="form-group" id="qFileSection" style="display:none;">
+                <label>Upload Question File (PDF or Image)</label>
+                <input type="file" class="form-control" id="qFileInput" accept="image/*,application/pdf" onchange="App.handleAdminQFile(event)">
+                <small style="color:var(--text-muted)">Max 5MB recommended.</small>
+                <input type="hidden" id="qFileBase64">
+              </div>
+
+              <div id="mcqSection">
+                <div class="form-group"><label>Options</label>
+                  <input type="text" class="form-control mb-2" id="qO0" placeholder="Option A" style="margin-bottom:8px;" required>
+                  <input type="text" class="form-control mb-2" id="qO1" placeholder="Option B" style="margin-bottom:8px;" required>
+                  <input type="text" class="form-control mb-2" id="qO2" placeholder="Option C" style="margin-bottom:8px;">
+                  <input type="text" class="form-control" id="qO3" placeholder="Option D">
+                </div>
+                <div class="form-group"><label>Correct Answer</label>
+                  <select class="form-control" id="qCorrect">
+                    <option value="0">Option A</option><option value="1">Option B</option>
+                    <option value="2">Option C</option><option value="3">Option D</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group"><label>Marks</label><input type="number" class="form-control" id="qMarks" value="1" min="1"></div>
+              <button type="submit" class="btn btn-blue w-100">Add Question</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ADMIN VIEW: Submissions -->
+      <div id="view-admin-subs" class="view">
+        <div class="card" id="adminSubsContent"></div>
+      </div>
+
+      <!-- ADMIN VIEW: Video Materials -->
+      <div id="view-admin-videos" class="view">
+        <div class="card">
+          <h2>Manage Video Materials</h2>
+          <form onsubmit="App.addVideo(event)" class="grid-2" style="margin-top:20px; align-items:end;">
+            <div class="form-group"><label>Video Title</label><input type="text" id="vidTitle" class="form-control" required></div>
+            <div class="form-group"><label>YouTube URL</label>
+              <div style="display:flex;gap:10px;">
+                <input type="text" id="vidUrl" class="form-control" required placeholder="https://youtube.com/watch?v=...">
+                <button type="submit" class="btn btn-blue">Upload</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div id="adminVideoList" class="grid-2"></div>
+      </div>
+
+      <!-- ADMIN VIEW: Messages (Inbox) -->
+      <div id="view-admin-messages" class="view">
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+          <h2>Send Message to Student</h2>
+          <form onsubmit="App.sendMessage(event)" style="margin-top:20px;">
+            <div class="form-group"><label>Select Student</label>
+              <select class="form-control" id="msgStudent" required></select>
+            </div>
+            <div class="form-group"><label>Subject</label><input type="text" id="msgSubject" class="form-control" required></div>
+            <div class="form-group"><label>Message Body</label><textarea id="msgBody" class="form-control" rows="4" required></textarea></div>
+            <button type="submit" class="btn btn-blue w-100">Send Message</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- STUDENT VIEW: Dashboard -->
+      <div id="view-student-dash" class="view">
+        <div class="profile-card-container">
+          <div class="profile-card">
+            <div class="avatar-wrap">
+              <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" id="dashAvatar" class="avatar">
+              <label for="profilePhotoInput" class="upload-icon" title="Update Profile Photo">
+                <i class="fas fa-camera"></i>
+                <input type="file" id="profilePhotoInput" style="display:none;" accept="image/*" onchange="App.uploadProfilePhoto(event)">
+              </label>
+            </div>
+            <div class="profile-name" id="dashName">User Name</div>
+            <div class="profile-id" id="dashStId">(ST0000)</div>
+            
+            <div class="stats-grid">
+              <div class="stat-box green"><i class="fas fa-piggy-bank"></i> <h3>$0</h3> Wallet Amount</div>
+              <div class="stat-box teal"><i class="fas fa-envelope"></i> <h3 id="dashInboxCount">0</h3> Inbox</div>
+              <div class="stat-box orange"><i class="fas fa-file-alt"></i> <h3 id="dashExamCount">0</h3> Exams</div>
+            </div>
+            <div style="margin-top: 25px;">
+              <button class="btn btn-blue"><i class="fas fa-user"></i> Buy New Packages</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+          <h3>My Performance</h3>
+          <div class="chart-container"><canvas id="studentLineChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- STUDENT VIEW: Exams List -->
+      <div id="view-student-exams" class="view">
+        <div class="card">
+          <h2 style="margin-bottom:15px">Available Exams</h2>
+          <div id="studentExamList"></div>
+        </div>
+      </div>
+
+      <!-- STUDENT VIEW: Take Exam -->
+      <div id="view-student-take" class="view">
+        <div id="examTakeContent"></div>
+      </div>
+
+      <!-- STUDENT VIEW: Results -->
+      <div id="view-student-results" class="view">
+        <div class="card">
+          <h2 style="margin-bottom:15px">My Exam Reports</h2>
+          <div id="studentResultsList"></div>
+        </div>
+      </div>
+
+      <!-- STUDENT VIEW: Inbox -->
+      <div id="view-student-inbox" class="view">
+        <div class="card">
+          <h2 style="margin-bottom:15px">My Inbox</h2>
+          <div id="studentInboxList"></div>
+        </div>
+      </div>
+
+      <!-- STUDENT VIEW: Videos -->
+      <div id="view-student-videos" class="view">
+        <h2>Video Materials</h2>
+        <div id="studentVideoList" class="grid-2" style="margin-top: 15px;"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const App = {
+  user: <%- JSON.stringify(user || null) %>,
+  currentView: 'auth',
+  currentExam: null,
+  currentSubmission: null,
+  currentQIdx: 0,
+  timeRemaining: 0,
+  timerInterval: null,
+  charts: {},
+
+  async init() {
+    await this.loadDepartments();
+    if(this.user) {
+      document.getElementById('view-auth').style.display = 'none';
+      document.getElementById('main-layout').classList.add('active');
+      this.populateHeader();
+      this.renderSidebar();
+      this.navigate(this.user.role === 'admin' ? 'admin-dash' : 'student-dash');
+    }
+  },
+
+  async loadDepartments() {
+    const depts = await this.api('/api/departments');
+    if(depts.error) return;
+    
+    let html = '';
+    depts.forEach(d => { html += `<option value="${d.name}">${d.name}</option>`; });
+    
+    const regDept = document.getElementById('regDept');
+    if(regDept) regDept.innerHTML = html;
+    
+    const exDept = document.getElementById('exDept');
+    if(exDept) exDept.innerHTML = `<option value="All">All Departments</option>` + html;
+  },
+
+  switchAuth(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (tab === 'login' ? 0 : 1) === i));
+    document.getElementById('form-login').classList.toggle('active', tab === 'login');
+    document.getElementById('form-register').classList.toggle('active', tab === 'register');
+  },
+
+  async login(e) {
+    e.preventDefault();
+    const res = await this.api('/api/login', 'POST', { email: document.getElementById('logEmail').value, password: document.getElementById('logPass').value });
+    if (res.error) return this.toast(res.error);
+    this.user = res.user;
+    location.reload();
+  },
+
+  async register(e) {
+    e.preventDefault();
+    const res = await this.api('/api/register', 'POST', { 
+      name: document.getElementById('regName').value, 
+      email: document.getElementById('regEmail').value, 
+      password: document.getElementById('regPass').value, 
+      role: document.getElementById('regRole').value,
+      department: document.getElementById('regDept').value
+    });
+    if (res.error) return this.toast(res.error);
+    this.user = res.user;
+    location.reload();
+  },
+
+  async logout() {
+    await this.api('/api/logout', 'POST');
+    location.reload();
+  },
+
+  populateHeader() {
+    if(this.user.role === 'student') {
+      document.getElementById('top-stid').innerText = this.user.studentId;
+    } else {
+      document.getElementById('head-student-id').style.display = 'none';
+    }
+    document.getElementById('top-name').innerText = this.user.name;
+  },
+
+  renderSidebar() {
+    const sb = document.getElementById('sidebar');
+    let html = `<div class="sidebar-header"><i class="fas fa-users"></i> ${this.user.role === 'admin' ? 'Admin Menu' : 'Student Menu'}</div>`;
+    
+    if (this.user.role === 'admin') {
+      html += `
+        <div class="nav-link" onclick="App.navigate('admin-dash')" id="nav-admin-dash"><i class="fas fa-chart-pie"></i> Dashboard</div>
+        <div class="nav-link" onclick="App.navigate('admin-depts')" id="nav-admin-depts"><i class="fas fa-building"></i> Departments</div>
+        <div class="nav-link" onclick="App.navigate('admin-exams')" id="nav-admin-exams"><i class="fas fa-file-alt"></i> Manage Exams</div>
+        <div class="nav-link" onclick="App.navigate('admin-videos')" id="nav-admin-videos"><i class="fas fa-video"></i> Video Materials</div>
+        <div class="nav-link" onclick="App.navigate('admin-messages')" id="nav-admin-messages"><i class="fas fa-envelope"></i> Send Messages</div>
+      `;
+    } else {
+      html += `
+        <div class="nav-link" onclick="App.navigate('student-dash')" id="nav-student-dash"><i class="fas fa-th-large"></i> My Dashboard</div>
+        <div class="nav-link" onclick="App.navigate('student-inbox')" id="nav-student-inbox"><i class="fas fa-envelope"></i> My Inbox</div>
+        <div class="nav-link" onclick="App.navigate('student-exams')" id="nav-student-exams"><i class="fas fa-file-signature"></i> My Exams</div>
+        <div class="nav-link" onclick="App.navigate('student-results')" id="nav-student-results"><i class="fas fa-chart-bar"></i> Exam Reports</div>
+        <div class="nav-link" onclick="App.navigate('student-videos')" id="nav-student-videos"><i class="fas fa-play-circle"></i> Videos / Materials</div>
+      `;
+    }
+    sb.innerHTML = html;
+  },
+
+  navigate(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    
+    const el = document.getElementById('view-' + view);
+    if (el) el.classList.add('active');
+    
+    const nav = document.getElementById('nav-' + view);
+    if (nav) nav.classList.add('active');
+    
+    this.currentView = view;
+    if(this.timerInterval && view !== 'student-take') clearInterval(this.timerInterval);
+
+    if (view === 'admin-dash') this.loadAdminDash();
+    if (view === 'admin-depts') this.loadAdminDepts();
+    if (view === 'admin-exams') this.loadAdminExams();
+    if (view === 'admin-videos') this.loadAdminVideos();
+    if (view === 'admin-messages') this.loadAdminMessages();
+
+    if (view === 'student-dash') this.loadStudentDash();
+    if (view === 'student-exams') this.loadStudentExams();
+    if (view === 'student-results') this.loadStudentResults();
+    if (view === 'student-inbox') this.loadStudentInbox();
+    if (view === 'student-videos') this.loadStudentVideos();
+  },
+
+  // --- Admin Flow ---
+  async loadAdminDash() {
+    const res = await this.api('/api/admin/dashboard');
+    if(res.error) return this.toast(res.error);
+    
+    if(this.charts.pie) this.charts.pie.destroy();
+    this.charts.pie = new Chart(document.getElementById('adminPieChart'), {
+      type: 'pie',
+      data: { labels: ['Passed', 'Failed'], datasets: [{ data: [res.passed, res.failed], backgroundColor: ['#7bb033', '#d93025'] }] },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    const labels = Object.keys(res.examScores);
+    const data = labels.map(l => Math.round(res.examScores[l].total / res.examScores[l].count));
+    
+    if(this.charts.bar) this.charts.bar.destroy();
+    this.charts.bar = new Chart(document.getElementById('adminBarChart'), {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 'Avg Score %', data, backgroundColor: '#0f5298' }] },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+    });
+  },
+
+  async loadAdminDepts() {
+    const depts = await this.api('/api/departments');
+    let html = `<table><tr><th>Department Name</th><th>Action</th></tr>`;
+    depts.forEach(d => {
+      html += `<tr><td>${d.name}</td><td><button class="btn btn-danger btn-sm" onclick="App.deleteDepartment('${d._id}')">Delete</button></td></tr>`;
+    });
+    html += `</table>`;
+    document.getElementById('adminDeptList').innerHTML = depts.length ? html : '<p>No departments.</p>';
+  },
+  async addDepartment(e) {
+    e.preventDefault();
+    const res = await this.api('/api/admin/departments', 'POST', { name: document.getElementById('newDeptName').value });
+    if(res.error) return this.toast(res.error);
+    this.toast('Department added');
+    document.getElementById('newDeptName').value = '';
+    this.loadAdminDepts();
+    this.loadDepartments(); // refresh global dropdowns
+  },
+  async deleteDepartment(id) {
+    if(!confirm('Delete this department?')) return;
+    await this.api(`/api/admin/departments/${id}`, 'DELETE');
+    this.toast('Deleted');
+    this.loadAdminDepts();
+    this.loadDepartments();
+  },
+
+  async loadAdminExams() {
+    const res = await this.api('/api/admin/dashboard');
+    if(res.error) return;
+    
+    let html = `<table><tr><th>Title</th><th>Dept</th><th>Duration</th><th>Action</th></tr>`;
+    res.exams.forEach(e => {
+      html += `<tr>
+        <td><strong>${this.esc(e.title)}</strong></td>
+        <td>${this.esc(e.department)}</td>
+        <td>${e.duration}m</td>
+        <td>
+          <button class="btn btn-blue btn-sm" onclick="App.viewAdminExam('${e._id}')">Edit</button>
+          <button class="btn btn-green btn-sm" onclick="App.viewAdminSubs('${e._id}')">Results</button>
+        </td>
+      </tr>`;
+    });
+    html += `</table>`;
+    document.getElementById('adminExamList').innerHTML = res.exams.length ? html : '<p>No exams created yet.</p>';
+  },
+
+  async createExam(e) {
+    e.preventDefault();
+    const body = {
+      title: document.getElementById('exTitle').value,
+      description: document.getElementById('exDesc').value,
+      department: document.getElementById('exDept').value,
+      duration: document.getElementById('exDuration').value,
+      passingPercentage: document.getElementById('exPass').value
+    };
+    const res = await this.api('/api/admin/exams', 'POST', body);
+    if(res.error) return this.toast(res.error);
+    this.toast('Exam Created');
+    this.viewAdminExam(res.exam._id);
+  },
+
+  async viewAdminExam(id) {
+    const res = await this.api(`/api/admin/exams/${id}`);
+    if(res.error) return this.toast(res.error);
+    this.currentExam = res.exam;
+    this.navigate('admin-exam-detail');
+    
+    document.getElementById('adminExamHeader').innerHTML = `
+      <div><h2 style="color:var(--theme-dark)">${this.esc(res.exam.title)}</h2><p>${this.esc(res.exam.department)} | ${res.exam.duration} mins</p></div>
+      <button class="btn btn-outline" onclick="App.navigate('admin-exams')">Back</button>
+    `;
+    this.renderAdminQs();
+  },
+
+  toggleQType() {
+    const t = document.getElementById('qType').value;
+    document.getElementById('mcqSection').style.display = t === 'mcq' ? 'block' : 'none';
+    document.getElementById('qFileSection').style.display = t === 'file' ? 'block' : 'none';
+    ['qO0','qO1'].forEach(id => document.getElementById(id).required = t === 'mcq');
+  },
+
+  handleAdminQFile(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    if(file.size > 5 * 1024 * 1024) return this.toast('File too large. Max 5MB.');
+    const reader = new FileReader();
+    reader.onload = (ev) => { document.getElementById('qFileBase64').value = ev.target.result; };
+    reader.readAsDataURL(file);
+  },
+
+  async addQuestion(e) {
+    e.preventDefault();
+    const type = document.getElementById('qType').value;
+    const body = { type, questionText: document.getElementById('qText').value, marks: document.getElementById('qMarks').value };
+    if (type === 'mcq') {
+      body.options = [document.getElementById('qO0').value, document.getElementById('qO1').value, document.getElementById('qO2').value, document.getElementById('qO3').value];
+      body.correctAnswer = document.getElementById('qCorrect').value;
+    } else {
+      body.questionFile = document.getElementById('qFileBase64').value;
+      if(!body.questionFile) return this.toast('Please select a file.');
+    }
+
+    const res = await this.api(`/api/admin/exams/${this.currentExam._id}/questions`, 'POST', body);
+    if(res.error) return this.toast(res.error);
+    this.currentExam = res.exam;
+    this.toast('Question added');
+    e.target.reset();
+    document.getElementById('qFileBase64').value = '';
+    this.toggleQType();
+    this.renderAdminQs();
+  },
+
+  async deleteQuestion(examId, idx) {
+    if(!confirm('Delete this question?')) return;
+    const res = await this.api(`/api/admin/exams/${examId}/questions/${idx}`, 'DELETE');
+    if(res.error) return this.toast(res.error);
+    this.currentExam = res.exam;
+    this.toast('Question deleted');
+    this.renderAdminQs();
+  },
+
+  renderAdminQs() {
+    let html = '';
+    this.currentExam.questions.forEach((q, i) => {
+      html += `<div style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between;">
+          <strong>Q${i+1}: ${this.esc(q.questionText)}</strong>
+          <button class="btn btn-danger btn-sm" onclick="App.deleteQuestion('${this.currentExam._id}', ${i})"><i class="fas fa-trash"></i></button>
+        </div>
+        <div style="font-size:12px; color:var(--text-muted)">${q.marks} marks - [${q.type.toUpperCase()}]</div>`;
+      
+      if(q.type === 'mcq') {
+        html += `<ul style="margin-left:20px; font-size:13px; color:var(--text-muted)">`;
+        q.options.forEach((o, j) => {
+          html += `<li style="${j === q.correctAnswer ? 'color:var(--green);font-weight:bold;' : ''}">${this.esc(o)}</li>`;
+        });
+        html += `</ul>`;
+      } else if (q.questionFile) {
+        html += `<div style="margin-top:10px; font-size:12px;"><a href="${q.questionFile}" target="_blank" style="color:var(--theme-dark)">View Attached File</a></div>`;
+      }
+      html += `</div>`;
+    });
+    document.getElementById('adminQuestionList').innerHTML = html || '<p>No questions added.</p>';
+  },
+
+  async viewAdminSubs(id) {
+    const res = await this.api(`/api/admin/exams/${id}/submissions`);
+    if(res.error) return this.toast(res.error);
+    this.navigate('admin-subs');
+    
+    let html = `<div style="display:flex;justify-content:space-between;margin-bottom:15px">
+      <h2>Results: ${this.esc(res.exam.title)}</h2>
+      <button class="btn btn-outline" onclick="App.navigate('admin-exams')">Back</button>
+    </div>
+    <table><tr><th>Student</th><th>Score</th><th>Status</th><th>Review</th></tr>`;
+    
+    res.submissions.forEach(s => {
+      let stat = s.passed ? '<span class="badge badge-pass">Pass</span>' : '<span class="badge badge-fail">Fail</span>';
+      if(s.needsManualGrading) stat = '<span class="badge" style="background:var(--orange)">Needs Review</span>';
+      
+      html += `<tr>
+        <td>${this.esc(s.user.name)} <br><small>${s.user.studentId}</small></td>
+        <td>${s.score}/${s.totalMarks} (${s.percentage}%)</td>
+        <td>${stat}</td>
+        <td><button class="btn btn-blue btn-sm" onclick="App.gradeSubmission('${s._id}')">View</button></td>
+      </tr>`;
+    });
+    html += `</table>`;
+    document.getElementById('adminSubsContent').innerHTML = html;
+  },
+  async gradeSubmission(id) {
+    const newScore = prompt("Enter the new absolute total score for this student (out of Total Marks):");
+    if(newScore !== null && !isNaN(newScore)) {
+      const res = await this.api(`/api/admin/submissions/${id}/grade`, 'PUT', { score: parseInt(newScore) });
+      if(!res.error) {
+        this.toast("Graded successfully");
+        this.viewAdminSubs(res.sub.exam);
+      }
+    }
+  },
+
+  // Videos
+  parseYoutubeEmbed(url) {
+    let vidId = '';
+    if (url.includes('youtube.com/watch?v=')) vidId = url.split('v=')[1].split('&')[0];
+    else if (url.includes('youtu.be/')) vidId = url.split('youtu.be/')[1].split('?')[0];
+    return vidId ? `https://www.youtube.com/embed/${vidId}` : url;
+  },
+  async loadAdminVideos() {
+    const vids = await this.api('/api/videos');
+    let html = '';
+    vids.forEach(v => {
+      html += `<div class="video-card">
+        <h4>${this.esc(v.title)}</h4>
+        <iframe src="${this.parseYoutubeEmbed(v.youtubeUrl)}" allowfullscreen></iframe>
+        <button class="btn btn-danger btn-sm" style="margin-top:10px; width:100%;" onclick="App.deleteVideo('${v._id}')">Delete</button>
+      </div>`;
+    });
+    document.getElementById('adminVideoList').innerHTML = html || '<p>No videos found.</p>';
+  },
+  async addVideo(e) {
+    e.preventDefault();
+    const body = { title: document.getElementById('vidTitle').value, youtubeUrl: document.getElementById('vidUrl').value };
+    await this.api('/api/admin/videos', 'POST', body);
+    this.toast('Video added');
+    e.target.reset();
+    this.loadAdminVideos();
+  },
+  async deleteVideo(id) {
+    if(!confirm('Delete video?')) return;
+    await this.api(`/api/admin/videos/${id}`, 'DELETE');
+    this.toast('Deleted');
+    this.loadAdminVideos();
+  },
+
+  // Messages
+  async loadAdminMessages() {
+    const students = await this.api('/api/admin/students');
+    let html = '';
+    students.forEach(s => html += `<option value="${s._id}">${s.name} (${s.studentId} - ${s.department})</option>`);
+    document.getElementById('msgStudent').innerHTML = html;
+  },
+  async sendMessage(e) {
+    e.preventDefault();
+    const body = { 
+      toStudent: document.getElementById('msgStudent').value, 
+      subject: document.getElementById('msgSubject').value, 
+      body: document.getElementById('msgBody').value 
+    };
+    await this.api('/api/admin/messages', 'POST', body);
+    this.toast('Message sent to student');
+    e.target.reset();
+  },
+
+
+  // --- Student Flow ---
+  async uploadProfilePhoto(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    if(file.size > 2 * 1024 * 1024) return this.toast('Image too large. Max 2MB.');
+    
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const b64 = ev.target.result;
+      const res = await this.api('/api/user/profile', 'POST', { profilePhoto: b64 });
+      if(res.ok) {
+         this.user.profilePhoto = b64;
+         document.getElementById('dashAvatar').src = b64;
+         this.toast('Profile updated');
+      }
+    };
+    reader.readAsDataURL(file);
+  },
+
+  async loadStudentDash() {
+    const res = await this.api('/api/student/dashboard');
+    if(res.error) return this.toast(res.error);
+    
+    document.getElementById('dashName').innerText = this.user.name;
+    document.getElementById('dashStId').innerText = `(${this.user.studentId})`;
+    if(this.user.profilePhoto) document.getElementById('dashAvatar').src = this.user.profilePhoto;
+    
+    document.getElementById('dashExamCount').innerText = res.submissions.length;
+    document.getElementById('dashInboxCount').innerText = res.msgCount || 0;
+
+    if(this.charts.line) this.charts.line.destroy();
+    this.charts.line = new Chart(document.getElementById('studentLineChart'), {
+      type: 'line',
+      data: { labels: res.chartLabels, datasets: [{ label: 'Score %', data: res.chartData, borderColor: '#33b89e', fill: false, tension: 0.1 }] },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100, min: 0 } } }
+    });
+  },
+
+  async loadStudentExams() {
+    const res = await this.api('/api/student/dashboard'); 
+    if(res.error) return;
+    
+    let html = `<table><tr><th>Exam Title</th><th>Questions</th><th>Duration</th><th>Action</th></tr>`;
+    res.exams.forEach(e => {
+      const isDone = res.submissions.some(s => s.exam._id === e._id);
+      html += `<tr>
+        <td><strong>${this.esc(e.title)}</strong></td>
+        <td>${e.questions.length} Qs</td>
+        <td>${e.duration} mins</td>
+        <td>
+          ${isDone ? `<span class="badge badge-pass">Completed</span>` : 
+           `<button class="btn btn-orange" onclick="App.startExam('${e._id}')"><i class="fas fa-play"></i> Start</button>`}
+        </td>
+      </tr>`;
+    });
+    html += `</table>`;
+    document.getElementById('studentExamList').innerHTML = res.exams.length ? html : '<p>No exams available.</p>';
+  },
+
+  async startExam(id) {
+    if(!confirm('Timer begins immediately. Ready?')) return;
+    const res = await this.api(`/api/student/exams/${id}/start`, 'POST');
+    if(res.error) return this.toast(res.error);
+    
+    this.currentExam = res.exam;
+    this.currentSubmission = res.submission;
+    this.currentQIdx = 0;
+    
+    const elapsed = Math.floor((Date.now() - new Date(this.currentSubmission.startedAt).getTime()) / 1000);
+    this.timeRemaining = (this.currentExam.duration * 60) - elapsed;
+    
+    this.navigate('student-take');
+    this.startTimer();
+    this.renderTakeUI();
+  },
+
+  renderTakeUI() {
+    const ex = this.currentExam;
+    const q = ex.questions[this.currentQIdx];
+    const ans = this.currentSubmission.answers[this.currentQIdx] || {};
+
+    let html = `
+      <div class="exam-header">
+        <div><h3>${this.esc(ex.title)}</h3><p>Question ${this.currentQIdx+1} of ${ex.questions.length}</p></div>
+        <div class="timer" id="takeTimer"><i class="fas fa-stopwatch"></i> <span id="tDisp">--:--</span></div>
+      </div>
+      <div class="exam-body">
+        <div class="card" style="align-self:start">
+          <h4>Map</h4>
+          <div class="q-nav-grid">
+            ${ex.questions.map((_, i) => {
+               const st = this.currentSubmission.answers[i];
+               let c = 'q-btn';
+               if(i === this.currentQIdx) c += ' current';
+               else if((st.selectedAnswer > -1) || st.answerFile) c += ' answered';
+               return `<button class="${c}" onclick="App.goToQ(${i})">${i+1}</button>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:15px">${this.esc(q.questionText)} <span style="font-size:12px; color:var(--text-muted); float:right">${q.marks} Mark(s)</span></h3>
+    `;
+
+    if (q.type === 'mcq') {
+      q.options.forEach((o, i) => {
+        const sel = ans.selectedAnswer === i ? 'selected' : '';
+        html += `<div class="option-item ${sel}" onclick="App.selOpt(${i})">
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${ans.selectedAnswer === i ? 'var(--theme-dark)' : '#ccc'}; background:${ans.selectedAnswer === i ? 'var(--theme-dark)' : 'transparent'}"></div>
+          ${this.esc(o)}
+        </div>`;
+      });
+    } else if (q.type === 'file') {
+      if(q.questionFile) {
+        let isImg = q.questionFile.startsWith('data:image');
+        html += `<div class="file-preview">
+          ${isImg ? `<img src="${q.questionFile}">` : `<embed src="${q.questionFile}" type="application/pdf">`}
+        </div>`;
+      }
+      html += `
+        <div style="margin-top:20px; padding:20px; background:#f0f7ff; border:1px dashed var(--theme-dark); border-radius:8px;">
+          <h4 style="margin-bottom:10px">Upload Answer Sheet (PDF/Image)</h4>
+          <input type="file" accept="image/*,application/pdf" onchange="App.handleStudentAnswerFile(event)">
+          ${ans.answerFile ? `<p style="color:var(--green);margin-top:10px"><i class="fas fa-check"></i> File uploaded</p>` : ''}
+        </div>
+      `;
+    }
+
+    html += `
+          <div style="display:flex; justify-content:space-between; margin-top:30px">
+            <button class="btn btn-outline" ${this.currentQIdx===0?'disabled':''} onclick="App.goToQ(${this.currentQIdx-1})">Prev</button>
+            ${this.currentQIdx < ex.questions.length-1 
+              ? `<button class="btn btn-blue" onclick="App.goToQ(${this.currentQIdx+1})">Next</button>` 
+              : `<button class="btn btn-green" onclick="App.submitExam()">Finish Exam</button>`}
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('examTakeContent').innerHTML = html;
+  },
+
+  handleStudentAnswerFile(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    if(file.size > 5 * 1024 * 1024) return this.toast('File too large. Max 5MB.');
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      this.currentSubmission.answers[this.currentQIdx].answerFile = ev.target.result;
+      this.renderTakeUI();
+    };
+    reader.readAsDataURL(file);
+  },
+  selOpt(idx) { this.currentSubmission.answers[this.currentQIdx].selectedAnswer = idx; this.renderTakeUI(); },
+  goToQ(idx) { this.currentQIdx = idx; this.renderTakeUI(); },
+  startTimer() {
+    this.timerInterval = setInterval(() => {
+      this.timeRemaining--;
+      const min = Math.floor(this.timeRemaining / 60);
+      const sec = this.timeRemaining % 60;
+      const t = document.getElementById('tDisp');
+      if(t) t.innerText = `${min}:${sec < 10 ? '0':''}${sec}`;
+      if(this.timeRemaining <= 0) { clearInterval(this.timerInterval); this.submitExam(); }
+    }, 1000);
+  },
+  async submitExam() {
+    clearInterval(this.timerInterval);
+    const res = await this.api(`/api/student/submissions/${this.currentSubmission._id}/submit`, 'POST', { answers: this.currentSubmission.answers });
+    if(res.error) return this.toast(res.error);
+    this.toast('Exam Submitted');
+    this.navigate('student-results');
+  },
+
+  async loadStudentResults() {
+    const res = await this.api('/api/student/dashboard'); 
+    if(res.error) return;
+    let html = `<table><tr><th>Exam</th><th>Score</th><th>Status</th></tr>`;
+    res.submissions.forEach(s => {
+      let stat = s.passed ? '<span class="badge badge-pass">Passed</span>' : '<span class="badge badge-fail">Failed</span>';
+      if(s.needsManualGrading) stat = '<span class="badge" style="background:var(--orange)">Pending Grading</span>';
+      html += `<tr>
+        <td><strong>${this.esc(s.exam.title)}</strong></td>
+        <td>${s.needsManualGrading ? 'TBD' : `${s.score}/${s.totalMarks} (${s.percentage}%)`}</td>
+        <td>${stat}</td>
+      </tr>`;
+    });
+    html += `</table>`;
+    document.getElementById('studentResultsList').innerHTML = res.submissions.length ? html : '<p>No results yet.</p>';
+  },
+
+  async loadStudentInbox() {
+    const msgs = await this.api('/api/messages');
+    let html = '';
+    msgs.forEach(m => {
+      html += `<div style="padding:15px; border:1px solid #ddd; border-radius:8px; margin-bottom:10px;">
+        <h4 style="margin-bottom:5px; color:var(--theme-dark);">${this.esc(m.subject)}</h4>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">From: ${m.fromAdmin?.name} - ${new Date(m.createdAt).toLocaleString()}</div>
+        <p style="font-size:14px; white-space:pre-wrap;">${this.esc(m.body)}</p>
+      </div>`;
+    });
+    document.getElementById('studentInboxList').innerHTML = msgs.length ? html : '<p>Your inbox is empty.</p>';
+  },
+
+  async loadStudentVideos() {
+    const vids = await this.api('/api/videos');
+    let html = '';
+    vids.forEach(v => {
+      html += `<div class="video-card">
+        <h4>${this.esc(v.title)}</h4>
+        <iframe src="${this.parseYoutubeEmbed(v.youtubeUrl)}" allowfullscreen></iframe>
+      </div>`;
+    });
+    document.getElementById('studentVideoList').innerHTML = html || '<p>No videos available right now.</p>';
+  },
+
+  async api(url, method='GET', body=null) {
+    try {
+      const opts = { method, headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(url, opts);
+      return await res.json();
+    } catch (e) { return { error: 'Network error' }; }
+  },
+
+  esc(str) {
+    if(!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  },
+
+  toast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').innerText = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
